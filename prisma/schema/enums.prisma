@@ -1,0 +1,70 @@
+enum UserRole {
+  PATIENT
+  DRIVER
+  ADMIN
+}
+
+enum DriverAvailabilityStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+enum AmbulanceType {
+  BASIC
+  ADVANCED
+  ICU
+}
+
+enum AmbulanceStatus {
+  AVAILABLE
+  DISPATCHED
+  EN_ROUTE
+  ON_TRIP
+  MAINTENANCE
+  OFFLINE
+}
+
+enum EmergencyPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EmergencyRequestStatus {
+  PENDING
+  DISPATCHING
+  DISPATCHED
+  EN_ROUTE
+  PICKED_UP
+  GOING_TO_HOSPITAL
+  ARRIVED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentProvider {
+  BKASH
+}
+
+enum PaymentStatus {
+  PENDING
+  INITIATED
+  SUCCESS
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum NotificationType {
+  EMERGENCY_CREATED
+  AMBULANCE_ASSIGNED
+  DRIVER_ACCEPTED
+  DRIVER_ARRIVED
+  HOSPITAL_SELECTED
+  TRIP_COMPLETED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  SYSTEM
+}

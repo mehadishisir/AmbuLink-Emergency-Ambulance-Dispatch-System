@@ -1,0 +1,32 @@
+model EmergencyRequest {
+  id               String                  @id @default(uuid())
+  description      String
+  pickupAddress    String
+  pickupLatitude   Float?
+  pickupLongitude  Float?
+  priority         EmergencyPriority
+  status           EmergencyRequestStatus  @default(PENDING)
+  requestedAt      DateTime                @default(now())
+  cancelledAt      DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  patientId String
+  patient   User   @relation("PatientRequests", fields: [patientId], references: [id])
+
+  driverId String?
+  driver   Driver? @relation(fields: [driverId], references: [id])
+
+  ambulanceId String?
+  ambulance   Ambulance? @relation(fields: [ambulanceId], references: [id])
+
+  hospitalId String?
+  hospital   Hospital? @relation(fields: [hospitalId], references: [id])
+
+  payments Payment[]
+
+  @@index([status])
+  @@index([priority])
+  @@map("emergency_requests")
+}
