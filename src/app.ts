@@ -3,8 +3,9 @@ import cors from "cors";
 import express, { Application , Request,Response } from "express";
 
 import config from "./config";
-import { notFound } from "./middleware/notFound";
+
 import { globalErrorHandler } from "./middleware/globalErrorHandler";
+import { notFound } from "./middleware/notFound";
 
 
 const app:Application = express();

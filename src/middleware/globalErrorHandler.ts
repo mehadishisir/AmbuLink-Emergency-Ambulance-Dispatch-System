@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import config from "../config";
 import { Prisma } from "../generated/prisma/client";
 
+
 export const globalErrorHandler = async (
 	err: any,
 	_req: Request,

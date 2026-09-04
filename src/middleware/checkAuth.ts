@@ -1,13 +1,21 @@
 import type { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 
-import type { UserRole } from "../generated/prisma/enums";
 import config from "../config";
 import { prisma } from "../lib/prisma";
-import { catchAsync } from "../utils/catchAsync";
 import { AppError } from "../utils/AppError";
-
+import { catchAsync } from "../utils/catchAsync";
 import { jwtUtils } from "../utils/jwt";
+import { UserRole } from "../generated/prisma/enums";
+
+
+
+type AuthTokenPayload = {
+	email: string;
+	name: string;
+	userId: string;
+	role: UserRole;
+};
 
 export interface RequestUser {
 	email: string;
@@ -24,8 +32,6 @@ declare global {
 	}
 }
 
-// checkAuth(UserRole.ADMIN, UserRole.PATIENT)
-// checkAuth() => all authenticated users
 export const checkAuth = (...requiredRoles: UserRole[]) => {
 	return catchAsync(
 		async (req: Request, _res: Response, next: NextFunction) => {
@@ -55,11 +61,11 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
 			}
 
 			const { email, name, userId, role } =
-				verifiedToken.data as JwtPayload;
+				verifiedToken.data as AuthTokenPayload;
 
 			if (
 				requiredRoles.length &&
-				!requiredRoles.includes(role as UserRole)
+				!requiredRoles.includes(role)
 			) {
 				throw new AppError(
 					httpStatus.FORBIDDEN,
@@ -72,7 +78,7 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
 					id: userId,
 					email,
 					name,
-					role: role as UserRole,
+					role,
 				},
 			});
 
@@ -94,7 +100,7 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
 				email,
 				name,
 				userId,
-				role: role as UserRole,
+				role,
 			};
 
 			next();
