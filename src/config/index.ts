@@ -21,4 +21,9 @@ export default {
 
 	backend_url: process.env.BACKEND_URL,
 	frontend_url: process.env.FRONTEND_URL,
+
+	redis_host: process.env.REDIS_HOST!,
+	redis_port: process.env.REDIS_PORT!,
+	redis_username: process.env.REDIS_USERNAME!,
+	redis_password: process.env.REDIS_PASSWORD!,
 };
