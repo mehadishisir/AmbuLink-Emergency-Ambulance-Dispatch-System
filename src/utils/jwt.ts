@@ -1,6 +1,4 @@
-// jsonwebtoken is loaded at runtime; suppress resolution errors when its typings
-// are not available in the current TypeScript environment.
-// @ts-expect-error Missing jsonwebtoken type declarations
+
 import jwt, { type JwtPayload, type SignOptions } from "jsonwebtoken";
 
 const createToken = (

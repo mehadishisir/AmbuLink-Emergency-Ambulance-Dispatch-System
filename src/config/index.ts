@@ -30,4 +30,6 @@ export default {
 	smtp_user: process.env.SMTP_USER!,
 	smtp_password: process.env.SMTP_PASSWORD!,
 	email_sender: process.env.EMAIL_SENDER!,
+
+	otp_expires_in_seconds: process.env.OTP_EXPIRES_IN_SECONDS!,
 };
