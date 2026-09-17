@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
-import { IRegisterPayload } from "./auth.interface";
+import { IRegisterPayload, IVerifyEmailPayload } from "./auth.interface";
 import httpStatus from "http-status"
 import bcrypt from "bcryptjs"
 import config from "../../config";
@@ -10,6 +10,8 @@ import crypto from "crypto";
 import path from "path";
 import { transporter } from "../../lib/nodemailer";
 import ejs from "ejs"
+import { jwtUtils } from "../../utils/jwt";
+import { SignOptions } from "jsonwebtoken";
 const registrationUser= async (payload:IRegisterPayload)=>{
     const {name,email,password,phone}=payload
 
@@ -53,6 +55,116 @@ const registrationUser= async (payload:IRegisterPayload)=>{
 
 }
 
+const verifyEmail = async (payload: IVerifyEmailPayload) => {
+	const { otp } = payload;
+	const email = payload.email.trim().toLowerCase();
+
+	
+	const isUserExist = await prisma.user.findUnique({
+		where: { email },
+	});
+
+	if (isUserExist) {
+		if (!isUserExist.isActive) {
+			throw new AppError(httpStatus.FORBIDDEN, "User is inactive");
+		}
+
+		if (isUserExist.emailVerified) {
+			throw new AppError(
+				httpStatus.CONFLICT,
+				"Email Already Verified. Please login.",
+			);
+		}
+	}
+
+	
+	const otpKey = `registration-otp:${email}`;
+
+	const redisOtp = await redisClient.get(otpKey);
+
+	if (!redisOtp) {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP");
+	}
+
+	if (redisOtp !== otp) {
+		throw new AppError(httpStatus.BAD_REQUEST, "OTP Does Not Match");
+	}
+
+	await redisClient.del(otpKey);
+
+	
+	const registrationKey = `registration-data:${email}`;
+
+	const redisUserData = await redisClient.get(registrationKey);
+
+	if (!redisUserData) {
+		throw new AppError(httpStatus.NOT_FOUND, "Registration data not found");
+	}
+
+	const userPayload = JSON.parse(redisUserData);
+
+	
+	const createdUser = await prisma.user.create({
+		data: {
+			name: userPayload.name,
+			email: userPayload.email,
+			password: userPayload.password,
+			phone: userPayload.phone,
+			role: UserRole.PATIENT,
+			emailVerified: true,
+		},
+		omit: { password: true },
+	});
+
+	await redisClient.del(registrationKey);
+
+
+	const templatePath = path.join(
+		process.cwd(),
+		"src/templates/welcome-email.ejs",
+	);
+
+	const templateData = {
+		name: createdUser.name,
+	};
+
+	const html = await ejs.renderFile(templatePath, templateData);
+
+	await transporter.sendMail({
+		from: config.email_sender,
+		to: email,
+		subject: "Welcome to AmbuLink",
+		html,
+	});
+
+	
+	const jwtPayload = {
+		userId: createdUser.id,
+		name: createdUser.name,
+		email: createdUser.email,
+		role: createdUser.role,
+	};
+
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_access_secret,
+		config.jwt_access_expires_in as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_refresh_secret,
+		config.jwt_refresh_expires_in as SignOptions,
+	);
+
+	return {
+		user: createdUser,
+		accessToken,
+		refreshToken,
+	};
+};
+
 export const AuthService = {
-    registrationUser
+    registrationUser,
+    verifyEmail
 }
