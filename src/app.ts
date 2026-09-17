@@ -6,6 +6,7 @@ import config from "./config";
 
 import { globalErrorHandler } from "./middleware/globalErrorHandler";
 import { notFound } from "./middleware/notFound";
+import { AuthRoutes } from "./module/Auth/auth.route";
 
 
 const app:Application = express();
@@ -31,7 +32,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // Routes will be added here
-// app.use("/api/auth", authRouter);
+app.use("/api/auth", AuthRoutes);
 
 // 404 Handler
 app.use(notFound);

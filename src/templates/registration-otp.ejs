@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification - AmbuLink</title>
+  </head>
+  <body>
+    <h2>Welcome to AmbuLink</h2>
+    <p>Hello <%= name %>,</p>
+    <p>Thank you for registering with AmbuLink. Use the OTP below to verify your email address.</p>
+    <h1><%= otp %></h1>
+    <p>This OTP will expire in <%= expirationMinutes || 5 %> minutes.</p>
+    <p>If you did not create an account, you can ignore this email.</p>
+    <p>Regards,</p>
+    <p>AmbuLink Team</p>
+  </body>
+</html>
