@@ -7,6 +7,7 @@ import config from "./config";
 import { globalErrorHandler } from "./middleware/globalErrorHandler";
 import { notFound } from "./middleware/notFound";
 import { AuthRoutes } from "./module/Auth/auth.route";
+import { HospitalRoutes } from "./module/Hospital/hospital.route";
 
 
 const app:Application = express();
@@ -33,7 +34,7 @@ app.get("/", (req: Request, res: Response) => {
 
 // Routes will be added here
 app.use("/api/auth", AuthRoutes);
-
+app.use("/api/hospitals", HospitalRoutes);
 // 404 Handler
 app.use(notFound);
 
