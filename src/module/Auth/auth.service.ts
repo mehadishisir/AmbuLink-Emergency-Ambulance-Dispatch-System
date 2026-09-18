@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
-import { IRegisterPayload, IVerifyEmailPayload } from "./auth.interface";
+import { ILoginUserPayload, IRegisterPayload, IVerifyEmailPayload } from "./auth.interface";
 import httpStatus from "http-status"
 import bcrypt from "bcryptjs"
 import config from "../../config";
@@ -163,8 +163,93 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		refreshToken,
 	};
 };
+const loginUser = async (payload: ILoginUserPayload) => {
+    const { password, email: rawEmail } = payload;
+    const email = rawEmail.trim().toLowerCase();
 
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
+
+    if (!user) {
+        throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+    }
+
+    if (!user.isActive) {
+        throw new AppError(httpStatus.FORBIDDEN, "User is inactive");
+    }
+
+    if (!user.emailVerified) {
+        throw new AppError(httpStatus.FORBIDDEN, "Please verify your email first.");
+    }
+
+    // google auth
+    if (user.password === null && (user as any).googleId) {
+        throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "User Already Has Account Registered With Google. Try To Login With Google.",
+        );
+    }
+
+    const isPasswordMatched = await bcrypt.compare(
+        password,
+        user.password as string,
+    );
+
+    if (!isPasswordMatched) {
+        throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+    }
+
+    const jwtPayload = {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    };
+
+    const accessToken = jwtUtils.createToken(
+        jwtPayload,
+        config.jwt_access_secret,
+        config.jwt_access_expires_in as SignOptions,
+    );
+
+    const refreshToken = jwtUtils.createToken(
+        jwtPayload,
+        config.jwt_refresh_secret,
+        config.jwt_refresh_expires_in as SignOptions,
+    );
+
+    
+
+    return {
+        accessToken,
+        refreshToken,
+        
+    };
+};
+
+const getMe = async (userId: string) => {
+    const isUserExists = await prisma.user.findUnique({
+        where: {
+            id: userId,
+        },
+        include: {
+            driverProfile: true, 
+        },
+        omit: {
+            password: true,
+        },
+    });
+
+    if (!isUserExists) {
+        throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    return isUserExists;
+};
 export const AuthService = {
     registrationUser,
-    verifyEmail
+    verifyEmail,
+	loginUser,
+	getMe,
 }
