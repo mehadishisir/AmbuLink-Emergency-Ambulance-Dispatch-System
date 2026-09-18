@@ -1,86 +1,148 @@
 import httpStatus from "http-status";
+
 import { prisma } from "../../lib/prisma";
+
 import { AppError } from "../../utils/AppError";
-import { ICreateHospitalPayload, IHospitalFilterQuery, IUpdateHospitalPayload } from "./hospital.interface";
 
+import {
+  ICreateHospitalPayload,
+  IHospitalFilterQuery,
+  IUpdateHospitalPayload,
+} from "./hospital.interface";
+
+
+// Create Hospital
 const createHospital = async (payload: ICreateHospitalPayload) => {
-	const hospital = await prisma.hospital.create({
-		data: payload,
-	});
-	return hospital;
+  const hospital = await prisma.hospital.create({
+    data: payload,
+  });
+
+  return hospital;
 };
 
+
+// Get All Hospitals
 const getAllHospitals = async (query: IHospitalFilterQuery) => {
-	const page = Number(query.page) || 1;
-	const limit = Number(query.limit) || 10;
-	const skip = (page - 1) * limit;
+  // Pagination
+  const page = Math.max(Number(query.page) || 1, 1);
 
-	const whereConditions: any = {};
+  const limit = Math.min(
+    Math.max(Number(query.limit) || 10, 1),
+    100,
+  );
 
-	if (query.search) {
-		whereConditions.name = {
-			contains: query.search,
-			mode: "insensitive",
-		};
-	}
+  const skip = (page - 1) * limit;
 
-	if (query.isActive !== undefined) {
-		whereConditions.isActive = query.isActive === "true";
-	}
 
-	const [hospitals, total] = await Promise.all([
-		prisma.hospital.findMany({
-			where: whereConditions,
-			skip,
-			take: limit,
-			orderBy: { createdAt: "desc" },
-		}),
-		prisma.hospital.count({ where: whereConditions }),
-	]);
+  // Filter Conditions
+  const whereConditions: any = {};
 
-	return {
-		meta: {
-			page,
-			limit,
-			total,
-			totalPages: Math.ceil(total / limit),
-		},
-		data: hospitals,
-	};
+
+  // Search by Hospital Name
+  if (query.search) {
+    whereConditions.name = {
+      contains: query.search,
+      mode: "insensitive",
+    };
+  }
+
+
+  // Filter by Active Status
+  if (query.isActive !== undefined) {
+    whereConditions.isActive = query.isActive === "true";
+  }
+
+
+  // Get Hospitals and Total Count
+  const [hospitals, total] = await Promise.all([
+    prisma.hospital.findMany({
+      where: whereConditions,
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+
+    prisma.hospital.count({
+      where: whereConditions,
+    }),
+  ]);
+
+
+  // Return Data with Pagination Meta
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+
+    data: hospitals,
+  };
 };
+
+
+// Get Single Hospital
 const getSingleHospital = async (id: string) => {
-	const hospital = await prisma.hospital.findUnique({ where: { id } });
+  const hospital = await prisma.hospital.findUnique({
+    where: {
+      id,
+    },
+  });
 
-	if (!hospital) {
-		throw new AppError(httpStatus.NOT_FOUND, "Hospital not found");
-	}
+  if (!hospital) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Hospital not found",
+    );
+  }
 
-	return hospital;
+  return hospital;
 };
 
-const updateHospital = async (id: string, payload:IUpdateHospitalPayload) => {
-	await getSingleHospital(id); // throws 404 if not found
 
-	const updatedHospital = await prisma.hospital.update({
-		where: { id },
-		data: payload,
-	});
+// Update Hospital
+const updateHospital = async (
+  id: string,
+  payload: IUpdateHospitalPayload,
+) => {
+  // Check Hospital Exists
+  await getSingleHospital(id);
 
-	return updatedHospital;
+  const updatedHospital = await prisma.hospital.update({
+    where: {
+      id,
+    },
+
+    data: payload,
+  });
+
+  return updatedHospital;
 };
 
+
+// Delete Hospital
 const deleteHospital = async (id: string) => {
-	await getSingleHospital(id);
+  // Check Hospital Exists
+  await getSingleHospital(id);
 
-	await prisma.hospital.delete({ where: { id } });
+  await prisma.hospital.delete({
+    where: {
+      id,
+    },
+  });
 
-	return null;
+  return null;
 };
 
+
+// Export Hospital Service
 export const HospitalService = {
-	createHospital,
-	getAllHospitals,
-	getSingleHospital,
-	updateHospital,
-	deleteHospital,
+  createHospital,
+  getAllHospitals,
+  getSingleHospital,
+  updateHospital,
+  deleteHospital,
 };
