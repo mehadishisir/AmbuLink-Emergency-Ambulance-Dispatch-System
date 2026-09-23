@@ -24,5 +24,21 @@ router.post(
   AmbulanceController.createAmbulance,
 );
 
+router.get(
+  "/",
+  checkAuth(UserRole.ADMIN),
+  AmbulanceController.getAllAmbulances,
+);
+router.get(
+  "/available",
+  checkAuth(),
+  AmbulanceController.getAvailableAmbulances,
+);
+router.get(
+  "/:id",
+  checkAuth(),
+  AmbulanceController.getSingleAmbulance,
+);
+
 
 export const AmbulanceRoutes = router;
