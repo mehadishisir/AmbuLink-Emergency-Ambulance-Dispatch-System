@@ -66,6 +66,35 @@ const getAvailableAmbulances = catchAsync(
     });
   },
 );
+const updateAmbulance = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await AmbulanceService.updateAmbulance(
+      req.params.id as string,
+      req.body,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Ambulance updated successfully",
+      data: result,
+    });
+  },
+);
+const deleteAmbulance = catchAsync(
+  async (req: Request, res: Response) => {
+    await AmbulanceService.deleteAmbulance(
+      req.params.id as string,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Ambulance deleted successfully",
+      data: null,
+    });
+  },
+);
 
 
 export const AmbulanceController = {
@@ -73,4 +102,6 @@ export const AmbulanceController = {
   getAllAmbulances,
   getSingleAmbulance,
   getAvailableAmbulances,
+  updateAmbulance,
+    deleteAmbulance,
 };

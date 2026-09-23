@@ -39,6 +39,17 @@ router.get(
   checkAuth(),
   AmbulanceController.getSingleAmbulance,
 );
+router.patch(
+  "/:id",
+  checkAuth(UserRole.ADMIN),
+  validateRequest(AmbulanceValidation.UpdateAmbulanceZodSchema),
+  AmbulanceController.updateAmbulance,
+);
+router.delete(
+  "/:id",
+  checkAuth(UserRole.ADMIN),
+  AmbulanceController.deleteAmbulance,
+);
 
 
 export const AmbulanceRoutes = router;

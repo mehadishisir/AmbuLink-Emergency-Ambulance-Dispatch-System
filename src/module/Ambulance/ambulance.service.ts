@@ -5,7 +5,7 @@ import { prisma } from "../../lib/prisma";
 
 import { AppError } from "../../utils/AppError";
 
-import { IAmbulanceFilterQuery, ICreateAmbulancePayload } from "./ambulance.interface";
+import { IAmbulanceFilterQuery, ICreateAmbulancePayload, IUpdateAmbulancePayload } from "./ambulance.interface";
 import { AmbulanceStatus } from "../../generated/prisma/enums";
 
 
@@ -169,10 +169,115 @@ const getAvailableAmbulances = async () => {
 
   return ambulances;
 };
+// update ambulance
+const updateAmbulance = async (
+  id: string,
+  payload: IUpdateAmbulancePayload,
+) => {
+  // 1. Check ambulance exists
+  const ambulance = await prisma.ambulance.findUnique({
+    where: { id },
+  });
 
+  if (!ambulance) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Ambulance not found",
+    );
+  }
+
+  // 2. Check vehicle number is not already used
+  if (
+    payload.vehicleNumber &&
+    payload.vehicleNumber !== ambulance.vehicleNumber
+  ) {
+    const existingAmbulance = await prisma.ambulance.findUnique({
+      where: {
+        vehicleNumber: payload.vehicleNumber,
+      },
+    });
+
+    if (existingAmbulance) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "An ambulance with this vehicle number already exists",
+      );
+    }
+  }
+
+  // 3. If driverId is provided, validate driver
+  if (payload.driverId) {
+    const driver = await prisma.driver.findUnique({
+      where: {
+        id: payload.driverId,
+      },
+    });
+
+    if (!driver) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "Driver not found",
+      );
+    }
+
+    // Check whether this driver is already assigned
+    // to another ambulance
+    const assignedAmbulance = await prisma.ambulance.findUnique({
+      where: {
+        driverId: payload.driverId,
+      },
+    });
+
+    if (
+      assignedAmbulance &&
+      assignedAmbulance.id !== id
+    ) {
+      throw new AppError(
+        httpStatus.CONFLICT,
+        "This driver is already assigned to another ambulance",
+      );
+    }
+  }
+
+  // 4. Update ambulance
+  const updatedAmbulance = await prisma.ambulance.update({
+    where: {
+      id,
+    },
+    data: payload,
+  });
+
+  return updatedAmbulance;
+};
+// delete ambulance
+const deleteAmbulance = async (id: string) => {
+  // 1. Check ambulance exists
+  const ambulance = await prisma.ambulance.findUnique({
+    where: { id },
+  });
+
+  if (!ambulance) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Ambulance not found",
+    );
+  }
+
+  // 2. Delete ambulance
+  await prisma.ambulance.delete({
+    where: {
+      id,
+    },
+  });
+
+  return null;
+};
 export const AmbulanceService = {
   createAmbulance,
   getAllAmbulances,
   getSingleAmbulance,
   getAvailableAmbulances,
+  updateAmbulance,
+  deleteAmbulance,
 };
+
