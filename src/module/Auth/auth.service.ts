@@ -247,9 +247,88 @@ const getMe = async (userId: string) => {
 
     return isUserExists;
 };
+const resendOtp = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      otp,
+      otpExpiresAt,
+    },
+  });
+};
+
+const forgotPassword = async (payload: { email: string }) => {
+  const { email } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found with this email!");
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      otp,
+      otpExpiresAt,
+    },
+  });
+};
+
+const resetPassword = async (payload: { email: string; otp: string; newPassword: string }) => {
+  const { email, otp, newPassword } = payload;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+  }
+
+  if (user.otp !== otp) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP!");
+  }
+
+  if (user.otpExpiresAt && new Date() > new Date(user.otpExpiresAt)) {
+    throw new AppError(httpStatus.BAD_REQUEST, "OTP has expired!");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+  await prisma.user.update({
+    where: { email },
+    data: {
+      password: hashedPassword,
+      otp: null,
+      otpExpiresAt: null,
+    },
+  });
+
+  return { message: "Password changed successfully" };
+};
 export const AuthService = {
     registrationUser,
     verifyEmail,
 	loginUser,
 	getMe,
+	resendOtp,
+	forgotPassword,
+	resetPassword,
 }

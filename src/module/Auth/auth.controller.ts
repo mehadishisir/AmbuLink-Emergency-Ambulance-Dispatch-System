@@ -95,10 +95,45 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
 		data: result,
 	});
 });
+const resendOtp = catchAsync(async (req: Request, res: Response) => {
+	await AuthService.resendOtp(req.body.email);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: `OTP Sent To Email : ${req.body.email}`,
+		data: null,
+	});
+});
+
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+	await AuthService.forgotPassword(req.body);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: `OTP Sent To Email : ${req.body.email}`,
+		data: null,
+	});
+});
+
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+	await AuthService.resetPassword(req.body);
+
+	sendResponse(res, {
+		statusCode: httpStatus.OK,
+		success: true,
+		message: "Password Changed Successfully",
+		data: null,
+	});
+});
 
 export const AuthController = {
 	registrationUser,
 	verifyEmail,
 	loginUser,
 	getMe,
+	resendOtp,
+	forgotPassword,
+	resetPassword,
 };
