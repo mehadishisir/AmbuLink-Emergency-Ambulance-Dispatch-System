@@ -46,6 +46,7 @@ enum EmergencyRequestStatus {
 
 enum PaymentProvider {
   BKASH
+  STRIPE
 }
 
 enum PaymentStatus {

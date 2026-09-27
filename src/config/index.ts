@@ -32,4 +32,6 @@ export default {
 	email_sender: process.env.EMAIL_SENDER!,
 
 	otp_expires_in_seconds: process.env.OTP_EXPIRES_IN_SECONDS!,
+
+	stripe_secret_key: process.env.STRIPE_SECRET_KEY!,
 };

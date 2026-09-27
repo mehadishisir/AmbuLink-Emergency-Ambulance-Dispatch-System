@@ -10,6 +10,8 @@ import { AuthRoutes } from "./module/Auth/auth.route";
 import { HospitalRoutes } from "./module/Hospital/hospital.route";
 import { AmbulanceRoutes } from "./module/Ambulance/ambulance.route";
 import { DriverRoutes } from "./module/Driver/driver.route";
+import { EmergencyRequestRoutes } from "./module/EmergencyRequest/emergency-request.route";
+import { PaymentRoutes } from "./module/Payment/payment.route";
 
 
 const app:Application = express();
@@ -39,6 +41,8 @@ app.use("/api/auth", AuthRoutes);
 app.use("/api/hospitals", HospitalRoutes);
 app.use("/api/ambulances", AmbulanceRoutes);
 app.use("/api/drivers", DriverRoutes);
+app.use("/api/emergency-requests",EmergencyRequestRoutes);
+app.use("/api/payments", PaymentRoutes);
 // 404 Handler
 app.use(notFound);
 
