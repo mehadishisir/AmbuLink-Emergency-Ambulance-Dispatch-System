@@ -9,6 +9,7 @@ import { notFound } from "./middleware/notFound";
 import { AuthRoutes } from "./module/Auth/auth.route";
 import { HospitalRoutes } from "./module/Hospital/hospital.route";
 import { AmbulanceRoutes } from "./module/Ambulance/ambulance.route";
+import { DriverRoutes } from "./module/Driver/driver.route";
 
 
 const app:Application = express();
@@ -37,6 +38,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/api/auth", AuthRoutes);
 app.use("/api/hospitals", HospitalRoutes);
 app.use("/api/ambulances", AmbulanceRoutes);
+app.use("/api/drivers", DriverRoutes);
 // 404 Handler
 app.use(notFound);
 
