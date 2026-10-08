@@ -3,20 +3,30 @@ import type { ZodObject } from "zod";
 
 export const validateRequest = (schema: ZodObject) => {
   return (req: Request, _res: Response, next: NextFunction) => {
-    const result = schema.safeParse({
+    const wrapped = schema.safeParse({
       body: req.body,
       query: req.query,
       params: req.params,
     });
 
-    if (!result.success) {
-      return next(result.error);
+    if (wrapped.success) {
+      if (
+        wrapped.data &&
+        typeof wrapped.data === "object" &&
+        "body" in wrapped.data
+      ) {
+        req.body = (wrapped.data as { body: unknown }).body;
+      }
+      return next();
     }
 
-    if (result.data && typeof result.data === "object" && "body" in result.data) {
-      req.body = (result.data as { body: unknown }).body;
+    const raw = schema.safeParse(req.body);
+
+    if (raw.success) {
+      req.body = raw.data;
+      return next();
     }
 
-    next();
+    return next(wrapped.error);
   };
 };
