@@ -51,10 +51,45 @@ const updateRequestStatus = (0, catchAsync_1.catchAsync)(async (req, res) => {
         data: result,
     });
 });
+const getMyRequests = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const user = req.user;
+    const result = await emergency_request_service_1.EmergencyRequestServices.getMyRequests(user.userId, req.query);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "My emergency requests fetched successfully!",
+        meta: result.meta,
+        data: result.data,
+    });
+});
+const getAssignedRequests = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const user = req.user;
+    const result = await emergency_request_service_1.EmergencyRequestServices.getAssignedRequests(user.userId, req.query);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Assigned requests fetched successfully!",
+        meta: result.meta,
+        data: result.data,
+    });
+});
+const getSingleRequest = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const { id } = req.params;
+    const result = await emergency_request_service_1.EmergencyRequestServices.getSingleRequest(id);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: "Emergency request fetched successfully!",
+        data: result,
+    });
+});
 exports.EmergencyRequestController = {
     createEmergencyRequest,
     getAllEmergencyRequests,
     assignDriverToRequest,
     updateRequestStatus,
+    getMyRequests,
+    getAssignedRequests,
+    getSingleRequest,
 };
 //# sourceMappingURL=emergency-request.controller.js.map

@@ -4,5 +4,8 @@ export declare const EmergencyRequestController: {
     getAllEmergencyRequests: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     assignDriverToRequest: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     updateRequestStatus: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    getMyRequests: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    getAssignedRequests: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    getSingleRequest: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 };
 //# sourceMappingURL=emergency-request.controller.d.ts.map

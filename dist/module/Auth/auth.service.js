@@ -45,6 +45,7 @@ const registrationUser = async (payload) => {
         subject: "Verify your email - Emergency Ambulance Dispatch",
         html,
     });
+    console.log(`OTP for ${email}: ${otp}`); // Log the OTP for testing purposes
 };
 const verifyEmail = async (payload) => {
     const { otp } = payload;
