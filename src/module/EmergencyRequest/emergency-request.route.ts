@@ -21,6 +21,17 @@ router.get(
   checkAuth(UserRole.ADMIN),
   EmergencyRequestController.getAllEmergencyRequests,
 );
+router.get(
+  "/my-requests",
+  checkAuth(UserRole.PATIENT),
+  EmergencyRequestController.getMyRequests,
+);
+
+router.get(
+  "/assigned",
+  checkAuth(UserRole.DRIVER),
+  EmergencyRequestController.getAssignedRequests,
+);
 
 router.patch(
   "/:id/assign",
@@ -35,5 +46,9 @@ router.patch(
   validateRequest(EmergencyRequestValidation.updateStatusZodSchema),
   EmergencyRequestController.updateRequestStatus,
 );
-
+router.get(
+  "/:id",
+  checkAuth(UserRole.PATIENT, UserRole.DRIVER, UserRole.ADMIN),
+  EmergencyRequestController.getSingleRequest,
+);
 export const EmergencyRequestRoutes = router;

@@ -221,11 +221,141 @@ const updateRequestStatus = async (
 
   return updatedRequest;
 };
+const getMyRequests = async (patientId: string, query: IQuery) => {
+  const limit = query.limit ? Number(query.limit) : 10;
+  const page = query.page ? Number(query.page) : 1;
+  const skip = (page - 1) * limit;
+
+  const andConditions: Prisma.EmergencyRequestWhereInput[] = [
+    { patientId },
+  ];
+
+  if (query.status) {
+    andConditions.push({ status: query.status as EmergencyRequestStatus });
+  }
+  if (query.priority) {
+    andConditions.push({ priority: query.priority as EmergencyPriority });
+  }
+
+  const whereConditions: Prisma.EmergencyRequestWhereInput = { AND: andConditions };
+
+  const [requests, total] = await Promise.all([
+    prisma.emergencyRequest.findMany({
+      where: whereConditions,
+      take: limit,
+      skip,
+      orderBy: { requestedAt: "desc" },
+      include: {
+        driver: {
+          include: {
+            user: { select: { id: true, name: true, phone: true } },
+          },
+        },
+        ambulance: true,
+        hospital: true,
+        payments: true,
+      },
+    }),
+    prisma.emergencyRequest.count({ where: whereConditions }),
+  ]);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: requests,
+  };
+};
+
+const getAssignedRequests = async (userId: string, query: IQuery) => {
+  const driver = await prisma.driver.findUnique({
+    where: { userId },
+  });
+
+  if (!driver) {
+    return {
+      meta: { page: 1, limit: 10, total: 0, totalPages: 0 },
+      data: [],
+    };
+  }
+
+  const limit = query.limit ? Number(query.limit) : 10;
+  const page = query.page ? Number(query.page) : 1;
+  const skip = (page - 1) * limit;
+
+  const andConditions: Prisma.EmergencyRequestWhereInput[] = [
+    { driverId: driver.id },
+  ];
+
+  if (query.status) {
+    andConditions.push({ status: query.status as EmergencyRequestStatus });
+  }
+
+  const whereConditions: Prisma.EmergencyRequestWhereInput = { AND: andConditions };
+
+  const [requests, total] = await Promise.all([
+    prisma.emergencyRequest.findMany({
+      where: whereConditions,
+      take: limit,
+      skip,
+      orderBy: { requestedAt: "desc" },
+      include: {
+        patient: {
+          select: { id: true, name: true, phone: true, email: true },
+        },
+        ambulance: true,
+        hospital: true,
+      },
+    }),
+    prisma.emergencyRequest.count({ where: whereConditions }),
+  ]);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+    data: requests,
+  };
+};
+
+const getSingleRequest = async (id: string) => {
+  const request = await prisma.emergencyRequest.findUnique({
+    where: { id },
+    include: {
+      patient: {
+        select: { id: true, name: true, phone: true, email: true },
+      },
+      driver: {
+        include: {
+          user: { select: { id: true, name: true, phone: true } },
+        },
+      },
+      ambulance: true,
+      hospital: true,
+      payments: true,
+    },
+  });
+
+  if (!request) {
+    throw new AppError(httpStatus.NOT_FOUND, "Emergency request not found");
+  }
+
+  return request;
+};
 
 
 export const EmergencyRequestServices = {
   createEmergencyRequest,
   getAllEmergencyRequests,
+  getMyRequests,
+  getAssignedRequests,
+  getSingleRequest,
   assignDriverToRequest,
   updateRequestStatus,
 }
