@@ -52,7 +52,7 @@ const registrationUser= async (payload:IRegisterPayload)=>{
 		html,
 	});
     
-
+console.log(`OTP for ${email}: ${otp}`); // Log the OTP for testing purposes
 }
 
 const verifyEmail = async (payload: IVerifyEmailPayload) => {
