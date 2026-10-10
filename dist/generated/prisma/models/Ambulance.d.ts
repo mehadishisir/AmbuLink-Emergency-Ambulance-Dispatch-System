@@ -1,6 +1,6 @@
 import type * as runtime from "@prisma/client/runtime/client";
-import type * as $Enums from "../enums.ts";
-import type * as Prisma from "../internal/prismaNamespace.ts";
+import type * as $Enums from "../enums.js";
+import type * as Prisma from "../internal/prismaNamespace.js";
 /**
  * Model Ambulance
  *
