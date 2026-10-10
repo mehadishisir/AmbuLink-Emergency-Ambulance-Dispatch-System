@@ -1,31 +1,34 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../utils/AppError";
 import { ILoginUserPayload, IRegisterPayload, IVerifyEmailPayload } from "./auth.interface";
-import httpStatus from "http-status"
-import bcrypt from "bcryptjs"
+import httpStatus from "http-status";
+import bcrypt from "bcryptjs";
 import config from "../../config";
 import { UserRole } from "../../generated/prisma/enums";
 import { redisClient } from "../../lib/redis";
 import crypto from "crypto";
 import path from "path";
 import { transporter } from "../../lib/nodemailer";
-import ejs from "ejs"
+import ejs from "ejs";
 import { jwtUtils } from "../../utils/jwt";
 import { SignOptions } from "jsonwebtoken";
-const registrationUser= async (payload:IRegisterPayload)=>{
-    const {name,email,password,phone}=payload
+import { googleClient } from "../../lib/googleClient";
 
-    const existingUser = await prisma.user.findUnique({
-        where:{
-            email
-        }
-    })
-    if (existingUser){
-        throw new AppError(httpStatus.CONFLICT, "User already exists with this email")
-    }
 
-    const hashPassword = await bcrypt.hash(password,Number(config.bcrypt_salt_rounds))
-    const expirationSeconds = 5 * 60;
+const registrationUser = async (payload: IRegisterPayload) => {
+	const { name, email, password, phone } = payload;
+
+	const existingUser = await prisma.user.findUnique({
+		where: {
+			email,
+		},
+	});
+	if (existingUser) {
+		throw new AppError(httpStatus.CONFLICT, "User already exists with this email");
+	}
+
+	const hashPassword = await bcrypt.hash(password, Number(config.bcrypt_salt_rounds));
+	const expirationSeconds = 5 * 60;
 	const otp = crypto.randomInt(100000, 1000000).toString();
 
 	await redisClient.set(`registration-otp:${email}`, otp, {
@@ -51,15 +54,14 @@ const registrationUser= async (payload:IRegisterPayload)=>{
 		subject: "Verify your email - Emergency Ambulance Dispatch",
 		html,
 	});
-    
-console.log(`OTP for ${email}: ${otp}`); // Log the OTP for testing purposes
-}
+
+	console.log(`OTP for ${email}: ${otp}`);
+};
 
 const verifyEmail = async (payload: IVerifyEmailPayload) => {
 	const { otp } = payload;
 	const email = payload.email.trim().toLowerCase();
 
-	
 	const isUserExist = await prisma.user.findUnique({
 		where: { email },
 	});
@@ -77,7 +79,6 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		}
 	}
 
-	
 	const otpKey = `registration-otp:${email}`;
 
 	const redisOtp = await redisClient.get(otpKey);
@@ -92,7 +93,6 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 
 	await redisClient.del(otpKey);
 
-	
 	const registrationKey = `registration-data:${email}`;
 
 	const redisUserData = await redisClient.get(registrationKey);
@@ -103,7 +103,6 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 
 	const userPayload = JSON.parse(redisUserData);
 
-	
 	const createdUser = await prisma.user.create({
 		data: {
 			name: userPayload.name,
@@ -117,7 +116,6 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 	});
 
 	await redisClient.del(registrationKey);
-
 
 	const templatePath = path.join(
 		process.cwd(),
@@ -137,7 +135,6 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		html,
 	});
 
-	
 	const jwtPayload = {
 		userId: createdUser.id,
 		name: createdUser.name,
@@ -163,172 +160,256 @@ const verifyEmail = async (payload: IVerifyEmailPayload) => {
 		refreshToken,
 	};
 };
+
 const loginUser = async (payload: ILoginUserPayload) => {
-    const { password, email: rawEmail } = payload;
-    const email = rawEmail.trim().toLowerCase();
+	const { password, email: rawEmail } = payload;
+	const email = rawEmail.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
-        where: { email },
-    });
+	const user = await prisma.user.findUnique({
+		where: { email },
+	});
 
-    if (!user) {
-        throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
-    }
+	if (!user) {
+		throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+	}
 
-    if (!user.isActive) {
-        throw new AppError(httpStatus.FORBIDDEN, "User is inactive");
-    }
+	if (!user.isActive) {
+		throw new AppError(httpStatus.FORBIDDEN, "User is inactive");
+	}
 
-    if (!user.emailVerified) {
-        throw new AppError(httpStatus.FORBIDDEN, "Please verify your email first.");
-    }
+	if (!user.emailVerified) {
+		throw new AppError(httpStatus.FORBIDDEN, "Please verify your email first.");
+	}
 
-    // google auth
-    if (user.password === null && (user as any).googleId) {
-        throw new AppError(
-            httpStatus.BAD_REQUEST,
-            "User Already Has Account Registered With Google. Try To Login With Google.",
-        );
-    }
+	if (user.password === null && (user as any).googleId) {
+		throw new AppError(
+			httpStatus.BAD_REQUEST,
+			"User Already Has Account Registered With Google. Try To Login With Google.",
+		);
+	}
 
-    const isPasswordMatched = await bcrypt.compare(
-        password,
-        user.password as string,
-    );
+	const isPasswordMatched = await bcrypt.compare(
+		password,
+		user.password as string,
+	);
 
-    if (!isPasswordMatched) {
-        throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
-    }
+	if (!isPasswordMatched) {
+		throw new AppError(httpStatus.UNAUTHORIZED, "Invalid credentials");
+	}
 
-    const jwtPayload = {
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-    };
+	const jwtPayload = {
+		userId: user.id,
+		name: user.name,
+		email: user.email,
+		role: user.role,
+	};
 
-    const accessToken = jwtUtils.createToken(
-        jwtPayload,
-        config.jwt_access_secret,
-        config.jwt_access_expires_in as SignOptions,
-    );
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_access_secret,
+		config.jwt_access_expires_in as SignOptions,
+	);
 
-    const refreshToken = jwtUtils.createToken(
-        jwtPayload,
-        config.jwt_refresh_secret,
-        config.jwt_refresh_expires_in as SignOptions,
-    );
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_refresh_secret,
+		config.jwt_refresh_expires_in as SignOptions,
+	);
 
-    
-
-    return {
-        accessToken,
-        refreshToken,
-        
-    };
+	return {
+		accessToken,
+		refreshToken,
+	};
 };
 
 const getMe = async (userId: string) => {
-    const isUserExists = await prisma.user.findUnique({
-        where: {
-            id: userId,
-        },
-        include: {
-            driverProfile: true, 
-        },
-        omit: {
-            password: true,
-        },
-    });
+	const isUserExists = await prisma.user.findUnique({
+		where: {
+			id: userId,
+		},
+		include: {
+			driverProfile: true,
+		},
+		omit: {
+			password: true,
+		},
+	});
 
-    if (!isUserExists) {
-        throw new AppError(httpStatus.NOT_FOUND, "User not found");
-    }
+	if (!isUserExists) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not found");
+	}
 
-    return isUserExists;
+	return isUserExists;
 };
+
 const resendOtp = async (email: string) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+	const user = await prisma.user.findUnique({
+		where: { email },
+	});
 
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
-  }
+	if (!user) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+	}
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+	const otp = Math.floor(100000 + Math.random() * 900000).toString();
+	const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  await prisma.user.update({
-    where: { email },
-    data: {
-      otp,
-      otpExpiresAt,
-    },
-  });
+	await prisma.user.update({
+		where: { email },
+		data: {
+			otp,
+			otpExpiresAt,
+		},
+	});
 };
 
 const forgotPassword = async (payload: { email: string }) => {
-  const { email } = payload;
+	const { email } = payload;
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+	const user = await prisma.user.findUnique({
+		where: { email },
+	});
 
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found with this email!");
-  }
+	if (!user) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not found with this email!");
+	}
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+	const otp = Math.floor(100000 + Math.random() * 900000).toString();
+	const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  await prisma.user.update({
-    where: { email },
-    data: {
-      otp,
-      otpExpiresAt,
-    },
-  });
+	await prisma.user.update({
+		where: { email },
+		data: {
+			otp,
+			otpExpiresAt,
+		},
+	});
 };
 
 const resetPassword = async (payload: { email: string; otp: string; newPassword: string }) => {
-  const { email, otp, newPassword } = payload;
+	const { email, otp, newPassword } = payload;
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+	const user = await prisma.user.findUnique({
+		where: { email },
+	});
 
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found!");
-  }
+	if (!user) {
+		throw new AppError(httpStatus.NOT_FOUND, "User not found!");
+	}
 
-  if (user.otp !== otp) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP!");
-  }
+	if (user.otp !== otp) {
+		throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP!");
+	}
 
-  if (user.otpExpiresAt && new Date() > new Date(user.otpExpiresAt)) {
-    throw new AppError(httpStatus.BAD_REQUEST, "OTP has expired!");
-  }
+	if (user.otpExpiresAt && new Date() > new Date(user.otpExpiresAt)) {
+		throw new AppError(httpStatus.BAD_REQUEST, "OTP has expired!");
+	}
 
-  const hashedPassword = await bcrypt.hash(newPassword, 12);
+	const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-  await prisma.user.update({
-    where: { email },
-    data: {
-      password: hashedPassword,
-      otp: null,
-      otpExpiresAt: null,
-    },
-  });
+	await prisma.user.update({
+		where: { email },
+		data: {
+			password: hashedPassword,
+			otp: null,
+			otpExpiresAt: null,
+		},
+	});
 
-  return { message: "Password changed successfully" };
+	return { message: "Password changed successfully" };
 };
+
+// ============ GOOGLE LOGIN ============
+
+const getGoogleAuthUrl = () => {
+	const url = googleClient.generateAuthUrl({
+		access_type: "offline",
+		scope: ["profile", "email"],
+		prompt: "consent",
+	});
+	return url;
+};
+
+const googleLogin = async (code: string) => {
+	// 1. Exchange authorization code for tokens
+	const { tokens } = await googleClient.getToken(code);
+	googleClient.setCredentials(tokens);
+
+	// 2. Verify id_token
+	const ticket = await googleClient.verifyIdToken({
+		idToken: tokens.id_token as string,
+		audience: config.google_client_id,
+	});
+
+	const payload = ticket.getPayload();
+	if (!payload || !payload.email) {
+		throw new AppError(httpStatus.BAD_REQUEST, "Google authentication failed");
+	}
+
+	const email = payload.email.trim().toLowerCase();
+
+	// 3. Find or create user
+	let user = await prisma.user.findUnique({
+		where: { email },
+	});
+
+	if (!user) {
+		user = await prisma.user.create({
+			data: {
+				email,
+				name: payload.name || "Google User",
+				googleId: payload.sub,
+				role: UserRole.PATIENT,
+				emailVerified: true,
+				isActive: true,
+			},
+		});
+	} else if (!(user as any).googleId) {
+		user = await prisma.user.update({
+			where: { id: user.id },
+			data: { googleId: payload.sub },
+		});
+	}
+
+	if (!user.isActive) {
+		throw new AppError(httpStatus.FORBIDDEN, "User is inactive");
+	}
+
+	// 4. Generate tokens
+	const jwtPayload = {
+		userId: user.id,
+		name: user.name,
+		email: user.email,
+		role: user.role,
+	};
+
+	const accessToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_access_secret,
+		config.jwt_access_expires_in as SignOptions,
+	);
+
+	const refreshToken = jwtUtils.createToken(
+		jwtPayload,
+		config.jwt_refresh_secret,
+		config.jwt_refresh_expires_in as SignOptions,
+	);
+
+	return {
+		user,
+		accessToken,
+		refreshToken,
+	};
+};
+
 export const AuthService = {
-    registrationUser,
-    verifyEmail,
+	registrationUser,
+	verifyEmail,
 	loginUser,
 	getMe,
 	resendOtp,
 	forgotPassword,
 	resetPassword,
-}
+	getGoogleAuthUrl,
+	googleLogin,
+};
