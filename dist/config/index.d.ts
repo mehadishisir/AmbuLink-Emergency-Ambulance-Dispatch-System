@@ -21,6 +21,9 @@ declare const _default: {
     email_sender: string;
     otp_expires_in_seconds: string;
     stripe_secret_key: string;
+    google_client_id: string;
+    google_client_secret: string;
+    google_callback_url: string;
 };
 export default _default;
 //# sourceMappingURL=index.d.ts.map

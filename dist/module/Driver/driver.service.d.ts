@@ -4,10 +4,10 @@ export declare const DriverServices: {
     createDriver: (payload: ICreateDriverPayload) => Promise<{
         user: {
             role: UserRole;
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
         };
     } & {
         id: string;
@@ -27,10 +27,10 @@ export declare const DriverServices: {
         data: ({
             user: {
                 role: UserRole;
+                id: string;
                 name: string;
                 email: string;
-                phone: string;
-                id: string;
+                phone: string | null;
                 profileImage: string | null;
             };
             ambulance: {
@@ -57,10 +57,10 @@ export declare const DriverServices: {
     getSingleDriver: (id: string) => Promise<{
         user: {
             role: UserRole;
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
             profileImage: string | null;
         };
         ambulance: {
@@ -86,10 +86,10 @@ export declare const DriverServices: {
     getMyDriverProfile: (userId: string) => Promise<{
         user: {
             role: UserRole;
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
             profileImage: string | null;
         };
         ambulance: {
@@ -118,10 +118,10 @@ export declare const DriverServices: {
     }) => Promise<{
         user: {
             role: UserRole;
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
             profileImage: string | null;
         };
         ambulance: {
@@ -150,10 +150,10 @@ export declare const DriverServices: {
     }) => Promise<{
         user: {
             role: UserRole;
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
             profileImage: string | null;
         };
         ambulance: {

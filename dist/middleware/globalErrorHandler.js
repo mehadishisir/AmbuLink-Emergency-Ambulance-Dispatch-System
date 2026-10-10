@@ -63,17 +63,18 @@ const globalErrorHandler = async (err, _req, res, _next) => {
     else if (err instanceof Error) {
         errorMessage = err.message;
     }
+    const isDev = config_1.default.node_env === "development";
+    const isSafeToShow = err instanceof AppError_1.AppError ||
+        err instanceof zod_1.ZodError ||
+        err instanceof client_1.Prisma.PrismaClientKnownRequestError ||
+        err instanceof client_1.Prisma.PrismaClientValidationError;
     res.status(statusCode).json({
         success: false,
         statusCode: statusCode || http_status_1.default.INTERNAL_SERVER_ERROR,
-        name: config_1.default.node_env === "development"
-            ? errorName
-            : "Internal Server Error",
-        message: config_1.default.node_env === "development"
-            ? errorMessage
-            : "Internal Server Error",
-        error: config_1.default.node_env === "development" ? err : undefined,
-        stack: config_1.default.node_env === "development" ? err.stack : undefined,
+        name: isDev || isSafeToShow ? errorName : "Internal Server Error",
+        message: isDev || isSafeToShow ? errorMessage : "Internal Server Error",
+        error: isDev ? err : undefined,
+        stack: isDev ? err.stack : undefined,
     });
 };
 exports.globalErrorHandler = globalErrorHandler;

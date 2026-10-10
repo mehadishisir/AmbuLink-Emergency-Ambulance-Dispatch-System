@@ -4,9 +4,9 @@ import { IQuery } from "../Driver/driver.interface";
 export declare const EmergencyRequestServices: {
     createEmergencyRequest: (userId: string, payload: ICreateEmergencyRequestPayload) => Promise<{
         hospital: {
+            id: string;
             name: string;
             phone: string;
-            id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
@@ -30,10 +30,10 @@ export declare const EmergencyRequestServices: {
             driverId: string | null;
         } | null;
         patient: {
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
         };
     } & {
         id: string;
@@ -62,9 +62,9 @@ export declare const EmergencyRequestServices: {
         };
         data: ({
             hospital: {
+                id: string;
                 name: string;
                 phone: string;
-                id: string;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
@@ -77,9 +77,9 @@ export declare const EmergencyRequestServices: {
             } | null;
             driver: ({
                 user: {
-                    name: string;
-                    phone: string;
                     id: string;
+                    name: string;
+                    phone: string | null;
                 };
             } & {
                 id: string;
@@ -102,10 +102,10 @@ export declare const EmergencyRequestServices: {
                 driverId: string | null;
             } | null;
             patient: {
+                id: string;
                 name: string;
                 email: string;
-                phone: string;
-                id: string;
+                phone: string | null;
             };
         } & {
             id: string;
@@ -148,9 +148,9 @@ export declare const EmergencyRequestServices: {
                 emergencyRequestId: string;
             }[];
             hospital: {
+                id: string;
                 name: string;
                 phone: string;
-                id: string;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
@@ -163,9 +163,9 @@ export declare const EmergencyRequestServices: {
             } | null;
             driver: ({
                 user: {
-                    name: string;
-                    phone: string;
                     id: string;
+                    name: string;
+                    phone: string | null;
                 };
             } & {
                 id: string;
@@ -215,9 +215,9 @@ export declare const EmergencyRequestServices: {
         };
         data: ({
             hospital: {
+                id: string;
                 name: string;
                 phone: string;
-                id: string;
                 isActive: boolean;
                 createdAt: Date;
                 updatedAt: Date;
@@ -241,10 +241,10 @@ export declare const EmergencyRequestServices: {
                 driverId: string | null;
             } | null;
             patient: {
+                id: string;
                 name: string;
                 email: string;
-                phone: string;
-                id: string;
+                phone: string | null;
             };
         } & {
             id: string;
@@ -280,9 +280,9 @@ export declare const EmergencyRequestServices: {
             emergencyRequestId: string;
         }[];
         hospital: {
+            id: string;
             name: string;
             phone: string;
-            id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
@@ -295,9 +295,9 @@ export declare const EmergencyRequestServices: {
         } | null;
         driver: ({
             user: {
-                name: string;
-                phone: string;
                 id: string;
+                name: string;
+                phone: string | null;
             };
         } & {
             id: string;
@@ -320,10 +320,10 @@ export declare const EmergencyRequestServices: {
             driverId: string | null;
         } | null;
         patient: {
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
         };
     } & {
         id: string;
@@ -345,9 +345,9 @@ export declare const EmergencyRequestServices: {
     }>;
     assignDriverToRequest: (requestId: string, driverId: string) => Promise<{
         hospital: {
+            id: string;
             name: string;
             phone: string;
-            id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
@@ -360,9 +360,9 @@ export declare const EmergencyRequestServices: {
         } | null;
         driver: ({
             user: {
-                name: string;
-                phone: string;
                 id: string;
+                name: string;
+                phone: string | null;
             };
         } & {
             id: string;
@@ -385,9 +385,9 @@ export declare const EmergencyRequestServices: {
             driverId: string | null;
         } | null;
         patient: {
-            name: string;
-            phone: string;
             id: string;
+            name: string;
+            phone: string | null;
         };
     } & {
         id: string;

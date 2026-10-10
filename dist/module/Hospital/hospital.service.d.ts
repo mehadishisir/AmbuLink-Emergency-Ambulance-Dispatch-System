@@ -1,9 +1,9 @@
 import { ICreateHospitalPayload, IHospitalFilterQuery, IUpdateHospitalPayload } from "./hospital.interface";
 export declare const HospitalService: {
     createHospital: (payload: ICreateHospitalPayload) => Promise<{
+        id: string;
         name: string;
         phone: string;
-        id: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
@@ -22,9 +22,9 @@ export declare const HospitalService: {
             totalPages: number;
         };
         data: {
+            id: string;
             name: string;
             phone: string;
-            id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
@@ -37,9 +37,9 @@ export declare const HospitalService: {
         }[];
     }>;
     getSingleHospital: (id: string) => Promise<{
+        id: string;
         name: string;
         phone: string;
-        id: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;
@@ -51,9 +51,9 @@ export declare const HospitalService: {
         longitude: number | null;
     }>;
     updateHospital: (id: string, payload: IUpdateHospitalPayload) => Promise<{
+        id: string;
         name: string;
         phone: string;
-        id: string;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;

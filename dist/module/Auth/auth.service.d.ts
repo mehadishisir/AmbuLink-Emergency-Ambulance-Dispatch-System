@@ -5,10 +5,11 @@ export declare const AuthService: {
     verifyEmail: (payload: IVerifyEmailPayload) => Promise<{
         user: {
             role: UserRole;
+            id: string;
             name: string;
             email: string;
-            phone: string;
-            id: string;
+            phone: string | null;
+            googleId: string | null;
             profileImage: string | null;
             isActive: boolean;
             emailVerified: boolean;
@@ -35,10 +36,11 @@ export declare const AuthService: {
         } | null;
     } & {
         role: UserRole;
+        id: string;
         name: string;
         email: string;
-        phone: string;
-        id: string;
+        phone: string | null;
+        googleId: string | null;
         profileImage: string | null;
         isActive: boolean;
         emailVerified: boolean;
@@ -57,6 +59,27 @@ export declare const AuthService: {
         newPassword: string;
     }) => Promise<{
         message: string;
+    }>;
+    getGoogleAuthUrl: () => string;
+    googleLogin: (code: string) => Promise<{
+        user: {
+            password: string | null;
+            role: UserRole;
+            id: string;
+            name: string;
+            email: string;
+            phone: string | null;
+            googleId: string | null;
+            profileImage: string | null;
+            isActive: boolean;
+            emailVerified: boolean;
+            otp: string | null;
+            otpExpiresAt: Date | null;
+            createdAt: Date;
+            updatedAt: Date;
+        };
+        accessToken: string;
+        refreshToken: string;
     }>;
 };
 //# sourceMappingURL=auth.service.d.ts.map

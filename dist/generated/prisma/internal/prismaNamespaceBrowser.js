@@ -174,6 +174,7 @@ exports.UserScalarFieldEnum = {
     password: 'password',
     phone: 'phone',
     role: 'role',
+    googleId: 'googleId',
     profileImage: 'profileImage',
     isActive: 'isActive',
     emailVerified: 'emailVerified',

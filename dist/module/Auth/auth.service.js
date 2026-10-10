@@ -16,12 +16,14 @@ const path_1 = __importDefault(require("path"));
 const nodemailer_1 = require("../../lib/nodemailer");
 const ejs_1 = __importDefault(require("ejs"));
 const jwt_1 = require("../../utils/jwt");
+const googleClient_1 = require("../../lib/googleClient");
 const registrationUser = async (payload) => {
     const { name, email, password, phone } = payload;
+    await (0, redis_1.connectRedis)();
     const existingUser = await prisma_1.prisma.user.findUnique({
         where: {
-            email
-        }
+            email,
+        },
     });
     if (existingUser) {
         throw new AppError_1.AppError(http_status_1.default.CONFLICT, "User already exists with this email");
@@ -45,9 +47,10 @@ const registrationUser = async (payload) => {
         subject: "Verify your email - Emergency Ambulance Dispatch",
         html,
     });
-    console.log(`OTP for ${email}: ${otp}`); // Log the OTP for testing purposes
+    console.log(`OTP for ${email}: ${otp}`);
 };
 const verifyEmail = async (payload) => {
+    await (0, redis_1.connectRedis)();
     const { otp } = payload;
     const email = payload.email.trim().toLowerCase();
     const isUserExist = await prisma_1.prisma.user.findUnique({
@@ -128,7 +131,6 @@ const loginUser = async (payload) => {
     if (!user.emailVerified) {
         throw new AppError_1.AppError(http_status_1.default.FORBIDDEN, "Please verify your email first.");
     }
-    // google auth
     if (user.password === null && user.googleId) {
         throw new AppError_1.AppError(http_status_1.default.BAD_REQUEST, "User Already Has Account Registered With Google. Try To Login With Google.");
     }
@@ -226,6 +228,69 @@ const resetPassword = async (payload) => {
     });
     return { message: "Password changed successfully" };
 };
+// ============ GOOGLE LOGIN ============
+const getGoogleAuthUrl = () => {
+    const url = googleClient_1.googleClient.generateAuthUrl({
+        access_type: "offline",
+        scope: ["profile", "email"],
+        prompt: "consent",
+    });
+    return url;
+};
+const googleLogin = async (code) => {
+    // 1. Exchange authorization code for tokens
+    const { tokens } = await googleClient_1.googleClient.getToken(code);
+    googleClient_1.googleClient.setCredentials(tokens);
+    // 2. Verify id_token
+    const ticket = await googleClient_1.googleClient.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: config_1.default.google_client_id,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+        throw new AppError_1.AppError(http_status_1.default.BAD_REQUEST, "Google authentication failed");
+    }
+    const email = payload.email.trim().toLowerCase();
+    // 3. Find or create user
+    let user = await prisma_1.prisma.user.findUnique({
+        where: { email },
+    });
+    if (!user) {
+        user = await prisma_1.prisma.user.create({
+            data: {
+                email,
+                name: payload.name || "Google User",
+                googleId: payload.sub,
+                role: enums_1.UserRole.PATIENT,
+                emailVerified: true,
+                isActive: true,
+            },
+        });
+    }
+    else if (!user.googleId) {
+        user = await prisma_1.prisma.user.update({
+            where: { id: user.id },
+            data: { googleId: payload.sub },
+        });
+    }
+    if (!user.isActive) {
+        throw new AppError_1.AppError(http_status_1.default.FORBIDDEN, "User is inactive");
+    }
+    // 4. Generate tokens
+    const jwtPayload = {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    };
+    const accessToken = jwt_1.jwtUtils.createToken(jwtPayload, config_1.default.jwt_access_secret, config_1.default.jwt_access_expires_in);
+    const refreshToken = jwt_1.jwtUtils.createToken(jwtPayload, config_1.default.jwt_refresh_secret, config_1.default.jwt_refresh_expires_in);
+    return {
+        user,
+        accessToken,
+        refreshToken,
+    };
+};
 exports.AuthService = {
     registrationUser,
     verifyEmail,
@@ -234,5 +299,7 @@ exports.AuthService = {
     resendOtp,
     forgotPassword,
     resetPassword,
+    getGoogleAuthUrl,
+    googleLogin,
 };
 //# sourceMappingURL=auth.service.js.map

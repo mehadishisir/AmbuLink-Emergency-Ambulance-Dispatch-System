@@ -907,6 +907,7 @@ export declare const UserScalarFieldEnum: {
     readonly password: "password";
     readonly phone: "phone";
     readonly role: "role";
+    readonly googleId: "googleId";
     readonly profileImage: "profileImage";
     readonly isActive: "isActive";
     readonly emailVerified: "emailVerified";

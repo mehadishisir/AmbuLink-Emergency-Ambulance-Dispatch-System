@@ -17,8 +17,22 @@ const emergency_request_route_1 = require("./module/EmergencyRequest/emergency-r
 const payment_route_1 = require("./module/Payment/payment.route");
 const app = (0, express_1.default)();
 // Middleware
+const allowedOrigins = [
+    config_1.default.frontend_url,
+    "https://ambu-link-emergency-ambulance-dispa-ashy.vercel.app",
+    "http://localhost:3000",
+]
+    .filter((o) => Boolean(o))
+    .map((o) => o.trim().replace(/\/$/, ""));
 app.use((0, cors_1.default)({
-    origin: config_1.default.frontend_url,
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            callback(null, false);
+        }
+    },
     credentials: true,
 }));
 app.use(express_1.default.json());
