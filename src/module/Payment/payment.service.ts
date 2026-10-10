@@ -34,6 +34,17 @@ const createCheckoutSession = async (
 	if (existingPayment) {
 		throw new AppError(httpStatus.CONFLICT, "Payment already exists for this request");
 	}
+	
+const frontendUrl = config.frontend_url;
+
+if (!frontendUrl || !URL.canParse(frontendUrl) ||
+    !["http:", "https:"].includes(new URL(frontendUrl).protocol)) {
+    throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Invalid FRONTEND_URL configuration",
+    );
+}
+
 
 	const session = await stripe.checkout.sessions.create({
 		payment_method_types: ["card"],
@@ -48,8 +59,10 @@ const createCheckoutSession = async (
 			},
 		],
 		mode: "payment",
-		success_url: `${config.frontend_url}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-		cancel_url: `${config.frontend_url}/payment-cancel`,
+		
+success_url: `${frontendUrl.replace(/\/+$/, "")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+cancel_url: `${frontendUrl.replace(/\/+$/, "")}/payment-cancel`,
+
 	});
 
 	const payment = await prisma.payment.create({
