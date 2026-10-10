@@ -5,7 +5,7 @@ import httpStatus from "http-status";
 import bcrypt from "bcryptjs";
 import config from "../../config";
 import { UserRole } from "../../generated/prisma/enums";
-import { redisClient } from "../../lib/redis";
+import { redisClient,connectRedis } from "../../lib/redis";
 import crypto from "crypto";
 import path from "path";
 import { transporter } from "../../lib/nodemailer";
@@ -17,7 +17,7 @@ import { googleClient } from "../../lib/googleClient";
 
 const registrationUser = async (payload: IRegisterPayload) => {
 	const { name, email, password, phone } = payload;
-
+await connectRedis();
 	const existingUser = await prisma.user.findUnique({
 		where: {
 			email,
@@ -59,7 +59,8 @@ const registrationUser = async (payload: IRegisterPayload) => {
 };
 
 const verifyEmail = async (payload: IVerifyEmailPayload) => {
-	const { otp } = payload;
+	await connectRedis();
+  const { otp } = payload;
 	const email = payload.email.trim().toLowerCase();
 
 	const isUserExist = await prisma.user.findUnique({
