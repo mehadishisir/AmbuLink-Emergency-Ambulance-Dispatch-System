@@ -67,18 +67,19 @@ export const globalErrorHandler = async (
     errorMessage = err.message;
   }
 
+   const isDev = config.node_env === "development";
+  const isSafeToShow =
+    err instanceof AppError ||
+    err instanceof ZodError ||
+    err instanceof Prisma.PrismaClientKnownRequestError ||
+    err instanceof Prisma.PrismaClientValidationError;
+
   res.status(statusCode).json({
     success: false,
     statusCode: statusCode || httpStatus.INTERNAL_SERVER_ERROR,
-    name:
-      config.node_env === "development"
-        ? errorName
-        : "Internal Server Error",
-    message:
-      config.node_env === "development"
-        ? errorMessage
-        : "Internal Server Error",
-    error: config.node_env === "development" ? err : undefined,
-    stack: config.node_env === "development" ? err.stack : undefined,
+    name: isDev || isSafeToShow ? errorName : "Internal Server Error",
+    message: isDev || isSafeToShow ? errorMessage : "Internal Server Error",
+    error: isDev ? err : undefined,
+    stack: isDev ? err.stack : undefined,
   });
 };
