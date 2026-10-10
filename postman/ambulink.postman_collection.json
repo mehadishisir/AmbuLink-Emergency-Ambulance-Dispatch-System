@@ -213,7 +213,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Dhaka Medical College Hospital\",\n  \"address\": \"Bakshi Bazar, Dhaka\",\n  \"city\": \"Dhaka\",\n  \"latitude\": 23.7257,\n  \"longitude\": 90.3971,\n  \"phone\": \"02-55165088\",\n  \"email\": \"dmch@example.com\"\n}"
+              "raw": "{\n  \"name\": \"Dhaka Medical College Hospital\",\n  \"address\": \"Bakshi Bazar, Dhaka\",\n  \"phone\": \"02-55165088\",\n  \"totalBeds\": 100,\n  \"availableBeds\": 45\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/hospitals",
