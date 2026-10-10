@@ -1,0 +1,685 @@
+{
+  "info": {
+    "name": "Ambulink - Emergency Ambulance Dispatch",
+    "description": "Complete API collection with folders: Auth, User, Hospital, Ambulance, Emergency Request, Payment, Negative Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://ambulink-nine.vercel.app/api" },
+    { "key": "patientEmail", "value": "patient@example.com" },
+    { "key": "patientPassword", "value": "Patient@123" },
+    { "key": "adminEmail", "value": "admin@example.com" },
+    { "key": "adminPassword", "value": "Admin@123" },
+    { "key": "driverEmail", "value": "driver@example.com" },
+    { "key": "driverPassword", "value": "Driver@123" },
+    { "key": "patientToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "driverToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "hospitalId", "value": "" },
+    { "key": "ambulanceId", "value": "" },
+    { "key": "emergencyRequestId", "value": "" },
+    { "key": "driverId", "value": "" },
+    { "key": "checkoutUrl", "value": "" },
+    { "key": "sessionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Patient\",\n  \"email\": \"newpatient@example.com\",\n  \"password\": \"NewPass@123\",\n  \"role\": \"PATIENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "2. Login - Patient",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{patientEmail}}\",\n  \"password\": \"{{patientPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"patientToken\", json.data.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "3. Login - Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"adminToken\", json.data.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "4. Login - Driver",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{driverEmail}}\",\n  \"password\": \"{{driverPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"driverToken\", json.data.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "5. Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User (Admin)",
+      "item": [
+        {
+          "name": "1. Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "2. Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "3. Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "4. Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Hospital",
+      "item": [
+        {
+          "name": "1. Create Hospital (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dhaka Medical College Hospital\",\n  \"address\": \"Bakshi Bazar, Dhaka\",\n  \"city\": \"Dhaka\",\n  \"latitude\": 23.7257,\n  \"longitude\": 90.3971,\n  \"phone\": \"02-55165088\",\n  \"email\": \"dmch@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/hospitals",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"hospitalId\", json.data.id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "2. Get All Hospitals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hospitals",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Hospital by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hospitals/{{hospitalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals", "{{hospitalId}}"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Hospital (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"02-99999999\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/hospitals/{{hospitalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals", "{{hospitalId}}"]
+            }
+          }
+        },
+        {
+          "name": "5. Delete Hospital (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/hospitals/{{hospitalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals", "{{hospitalId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ambulance",
+      "item": [
+        {
+          "name": "1. Create Ambulance (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleNumber\": \"DHAKA-1234\",\n  \"driverId\": \"{{driverId}}\",\n  \"hospitalId\": \"{{hospitalId}}\",\n  \"type\": \"BASIC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ambulances",
+              "host": ["{{baseUrl}}"],
+              "path": ["ambulances"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"ambulanceId\", json.data.id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "2. Get All Ambulances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ambulances",
+              "host": ["{{baseUrl}}"],
+              "path": ["ambulances"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Ambulance by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ambulances/{{ambulanceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ambulances", "{{ambulanceId}}"]
+            }
+          }
+        },
+        {
+          "name": "4. Update Ambulance (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ICU\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ambulances/{{ambulanceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ambulances", "{{ambulanceId}}"]
+            }
+          }
+        },
+        {
+          "name": "5. Delete Ambulance (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ambulances/{{ambulanceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ambulances", "{{ambulanceId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Emergency Request",
+      "item": [
+        {
+          "name": "1. Create Request (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Chest pain, need ambulance urgently\",\n  \"pickupAddress\": \"Mirpur 10, Dhaka\",\n  \"pickupLatitude\": 23.8069,\n  \"pickupLongitude\": 90.3687,\n  \"priority\": \"HIGH\",\n  \"hospitalId\": \"{{hospitalId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"emergencyRequestId\", json.data.id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "2. My Requests (Patient)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests/my-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests", "my-requests"]
+            }
+          }
+        },
+        {
+          "name": "3. Get All Requests (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests"]
+            }
+          }
+        },
+        {
+          "name": "4. Get Request by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests/{{emergencyRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests", "{{emergencyRequestId}}"]
+            }
+          }
+        },
+        {
+          "name": "5. Assign Driver (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{driverId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests/{{emergencyRequestId}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests", "{{emergencyRequestId}}", "assign"]
+            }
+          }
+        },
+        {
+          "name": "6. Assigned Requests (Driver)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests/assigned",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests", "assigned"]
+            }
+          }
+        },
+        {
+          "name": "7. Update Status (Driver)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{driverToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests/{{emergencyRequestId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests", "{{emergencyRequestId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "1. Create Checkout Session (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emergencyRequestId\": \"{{emergencyRequestId}}\",\n  \"amount\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/create-checkout-session",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "create-checkout-session"]
+            }
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "pm.collectionVariables.set(\"checkoutUrl\", json.data.checkoutUrl);",
+                "pm.collectionVariables.set(\"sessionId\", json.data.sessionId);",
+                "console.log('Open this URL in browser:', json.data.checkoutUrl);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "2. Verify Payment (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/verify-payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "verify-payment"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Payment by Request ID (Patient)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/request/{{emergencyRequestId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "request", "{{emergencyRequestId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative Tests",
+      "item": [
+        {
+          "name": "1. No Token - Create Emergency (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Test\",\n  \"pickupAddress\": \"Test\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests"]
+            }
+          }
+        },
+        {
+          "name": "2. Patient creates Hospital (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fake Hospital\",\n  \"address\": \"Test\",\n  \"city\": \"Dhaka\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/hospitals",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals"]
+            }
+          }
+        },
+        {
+          "name": "3. Invalid Hospital ID (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/hospitals/unknownid123",
+              "host": ["{{baseUrl}}"],
+              "path": ["hospitals", "unknownid123"]
+            }
+          }
+        },
+        {
+          "name": "4. Invalid Emergency Body (Zod Error)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupAddress\": \"Mirpur\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emergency-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["emergency-requests"]
+            }
+          }
+        },
+        {
+          "name": "5. Invalid Register Email (Zod Error)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"email\": \"not-an-email\",\n  \"password\": \"123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "6. Duplicate Payment Verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"{{sessionId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/payments/verify-payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payments", "verify-payment"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
