@@ -17,11 +17,25 @@ import { PaymentRoutes } from "./module/Payment/payment.route";
 const app:Application = express();
 
 // Middleware
+const allowedOrigins = [
+  config.frontend_url,
+  "https://ambu-link-emergency-ambulance-dispa-ashy.vercel.app",
+  "http://localhost:3000",
+]
+  .filter((o): o is string => Boolean(o))
+  .map((o) => o.trim().replace(/\/$/, ""));
+
 app.use(
-	cors({
-		origin: config.frontend_url,
-		credentials: true,
-	}),
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+  }),
 );
 
 app.use(express.json());
